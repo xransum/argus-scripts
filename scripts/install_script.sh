@@ -10,9 +10,9 @@ USER=${USER:-$(id -u -n)}
 # $HOME is defined at the time of login, but it could be unset. If it is unset,
 # a tilde by itself (~) will not be expanded to the current user's home directory.
 # POSIX: https://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap08.html#tag_08_03
-HOME="${HOME:-$(getent passwd $USER 2>/dev/null | cut -d: -f6)}"
+HOME="${HOME:-$(getent passwd "$USER" 2>/dev/null | cut -d: -f6)}"
 # macOS does not have getent, but this works even if $HOME is unset
-HOME="${HOME:-$(eval echo ~$USER)}"
+HOME="${HOME:-$(eval echo ~"$USER")}"
 
 command_exists() {
     command -v "$@" >/dev/null 2>&1
@@ -67,7 +67,7 @@ supports_hyperlinks() {
 
     # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
     if [ -n "$VTE_VERSION" ]; then
-        [ $VTE_VERSION -ge 5000 ]
+        [ "$VTE_VERSION" -ge 5000 ]
         return $?
     fi
 
@@ -196,7 +196,7 @@ setup_color() {
 }
 
 add_to_rc_file() {
-    local shell_rc_file=""
+    shell_rc_file=""
 
     case "$SHELL" in
     */bash)
@@ -214,7 +214,7 @@ add_to_rc_file() {
         ;;
     esac
 
-    local bin_path='[ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"'
+    bin_path='[ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"'
 
     if ! grep -Fxq "$bin_path" "$shell_rc_file"; then
         echo "$bin_path" >>"$shell_rc_file"
@@ -227,19 +227,20 @@ add_to_rc_file() {
 create_bin_dir() {
     if [ ! -d "$HOME/bin" ]; then
         mkdir "$HOME/bin"
-        printf "[!] ${FMT_BLUE}Created \$HOME/bin directory${FMT_RESET}\n"
+        printf "%s\n" "[!] ${FMT_BLUE}Created \$HOME/bin directory${FMT_RESET}"
     else
-        printf "[?] ${FMT_YELLOW}\$HOME/bin directory already exists${FMT_RESET}\n"
+        printf "%s\n" "[?] ${FMT_YELLOW}\$HOME/bin directory already exists${FMT_RESET}"
     fi
 }
 
 prompt_yes_no() {
-    local prompt="$1"
-    local default="${2:-n}"
-    local response
+    prompt="$1"
+    default="${2:-n}"
+    response=
 
     while true; do
-        read -p "$prompt [y/n] " response
+        printf "%s [y/n] " "$prompt"
+        read -r response
         case "$response" in
         [yY]*) return 0 ;;
         [nN]*) return 1 ;;
@@ -273,14 +274,14 @@ main() {
     fi
 
     # Download the files
-    for repo_url in $@; do
-        if [[ "$repo_url" != "http"* ]]; then
+    for repo_url in "$@"; do
+        if [ "${repo_url#http}" = "$repo_url" ]; then
             fmt_error "Invalid URL: $repo_url"
             continue
         fi
 
-        local file_name=$(basename "$repo_url")
-        local file_path="$HOME/bin/${file_name}"
+        file_name=$(basename "$repo_url")
+        file_path="$HOME/bin/${file_name}"
 
         if [ -f "$file_path" ]; then
             printf "[?] ${FMT_YELLOW}The file ${FMT_BOLD}%s${FMT_RESET} ${FMT_YELLOW}already exists...${FMT_RESET}\n" \
@@ -300,7 +301,7 @@ main() {
         printf "[!] ${FMT_YELLOW}Downloading ${FMT_BLUE}%s${FMT_RESET}\n" \
             "$(fmt_underline "$repo_url")"
 
-        local contents=""
+        contents=""
         if command_exists curl; then
             contents=$(curl -sSL "$repo_url")
         elif command_exists wget; then
@@ -314,7 +315,7 @@ main() {
         fi
 
         # Write the contents to the file
-        printf "%s" "$contents" > "$file_path"
+        printf "%s" "$contents" >"$file_path"
         if [ ! -f "$file_path" ]; then
             fmt_error "Failed to write to $file_path"
             continue
@@ -334,8 +335,10 @@ main() {
         fi
     done
 
-    printf "\n${FMT_GREEN}${FMT_BOLD}Installation complete!${FMT_RESET}\n"
-    printf "%s\n\n" "${FMT_BLUE}${FMT_BOLD}Please restart your shell to apply the changes${FMT_RESET}"
+    printf "\n%s\n" "${FMT_GREEN}${FMT_BOLD}Installation complete!${FMT_RESET}"
+    printf "%s%s\n\n" \
+        "${FMT_BLUE}${FMT_BOLD}Please restart your shell to " \
+        "apply the changes${FMT_RESET}"
 
     return 0
 }
