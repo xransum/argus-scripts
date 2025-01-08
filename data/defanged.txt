@@ -1,0 +1,15 @@
+user+admin[@]example[.]com
+www[.]example[.]dog/
+www[.]example[.]tech/
+awinplast[.]ir/
+foo[.]bar[.]baz[.]biz/cgi-bin[.]zip?user=aslnasdndasklndg&passwd=81209381029832901
+hxxps[://]google[.]example[.]com/
+hxxps[://]another-example[.]example[.]com/jsdaa4y?lead_id=1i5ucabdm4nek&sub1=&sub2=&sub3=&sub4=&sub5[.].[.]
+hxxps[://]www[.]example[.]com/
+hxxps[://]www[.]example[.]nl/
+hxxps[://]www[.]example[.]com/event/fireside-friday-windows-command-line/
+hxxp[://]example[.]com/
+hxxps[://]aa[.]bb[.]cc[.]dd[.]eee[.]fff[.]www[.]example[.]org/
+fxp[://]securonet[.]org
+fxps[://]username[@]securonet[.]org:/bin/sh
+hxxp[://]example[.]com

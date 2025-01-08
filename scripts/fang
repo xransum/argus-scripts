@@ -1,0 +1,45 @@
+#!/bin/sh
+
+help() {
+    printf "Usage: fang <text>\n"
+    printf "%s\n" \
+        "Fang urls, ip addresses, domains, and emails addresses."
+}
+
+# Handle arguments
+args="$*"
+
+# Read from stdin if it is a pipe or here-string or here-document
+# set value if file is given
+if [ -p /dev/stdin ]; then
+    args="$(cat -)"
+fi
+
+# Recover positional args
+set -- "${args}"
+
+# If value is empty, show help
+if [ -z "$1" ]; then
+    help
+    exit 1
+fi
+
+main() {
+    echo "$*" |
+        # Replace [.] with .
+        sed 's/\[\.\]/./g' |
+        # Replace [dot], (dot), or [DOT] with .
+        sed 's/\[dot\]\|\(dot\)\|\[DOT\]/./gi' |
+        # Replace [://], [:]// with ://
+        sed 's/\[:\/\/\]\|\[:\/\/\]/:\/\//g' |
+        # Replace hxxp with http
+        sed -E 's/h[tx][tx]p(s)?/http\1/gi;' |
+        # Replace fxp with ftp, fxxs with ftps
+        sed -E 's/f[tx][xp](s)?/ftp\1/gi;' |
+        # Replace [at], (at), or [AT] with @
+        sed -E 's/\[at\]|\(at\)|\[@\]/@/g'
+
+    return 0
+}
+
+main "$@"
