@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # help function
 help() {
@@ -27,13 +27,13 @@ fi
 
 main() {
     echo "$*" |
-        # replace @ with [@]
+        # Replace @ with [@]
         sed -E -e 's/([^[]|^)@/\1[@]/g' |
-        # replace . with [.]
+        # Replace . with [.]
         sed -E -e 's/([^[]|^)\./\1[.]/g' |
-        # replace :// with [://]
+        # Replace :// with [://]
         sed 's#\([a-zA-Z][a-zA-Z0-9+.-]*\)://#\1[://]#g' |
-        # replace http/s with hxxp/s or ftp with fxp/s
+        # Replace http/s with hxxp/s or ftp with fxp/s
         sed -E 's/http(s)?/hxxp\1/g; s/ftp(s)?/fxp\1/g'
 
     return 0
