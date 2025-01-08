@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# help function
+help() {
+    printf "Usage: defang <text>\n"
+    printf "%s\n" \
+        "Defang urls, ip addresses, domains, and emails addresses."
+}
+
+# Handle arguments
+args="$*"
+
+# Read from stdin if it is a pipe or here-string or here-document
+# set value if file is given
+if [ -p /dev/stdin ]; then
+    args="$(cat -)"
+fi
+
+# Recover positional args
+set -- "${args}"
+
+# If value is empty, show help
+if [ -z "$1" ]; then
+    help
+    exit 1
+fi
+
+main() {
+    echo "$*" |
+        # replace @ with [@]
+        sed -E -e 's/([^[]|^)@/\1[@]/g' |
+        # replace . with [.]
+        sed -E -e 's/([^[]|^)\./\1[.]/g' |
+        # replace :// with [://]
+        sed 's#\([a-zA-Z][a-zA-Z0-9+.-]*\)://#\1[://]#g' |
+        # replace http/s with hxxp/s or ftp with fxp/s
+        sed -E 's/http(s)?/hxxp\1/g; s/ftp(s)?/fxp\1/g'
+
+    return 0
+}
+
+main "$@"
+exit 0

@@ -1,0 +1,15 @@
+user+admin@example.com
+www.example.dog/
+www.example.tech/
+awinplast.ir/
+foo.bar.baz.biz/cgi-bin.zip?user=aslnasdndasklndg&passwd=81209381029832901
+https://google.example.com/
+https://another-example.example.com/jsdaa4y?lead_id=1i5ucabdm4nek&sub1=&sub2=&sub3=&sub4=&sub5...
+https://www.example.com/
+https://www.example.nl/
+https://www.example.com/event/fireside-friday-windows-command-line/
+http://example.com/
+https://aa.bb.cc.dd.eee.fff.www.example.org/
+ftp://securonet.org
+ftps://username@securonet.org:/bin/sh
+http://example.com
