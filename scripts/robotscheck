@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Print the help
+function help {
+    echo "Usage: checkrobots [DOMAIN|URL]..."
+    echo ""
+    echo "Prints the robots.txt file for the given domain or URL."
+    echo ""
+    echo "Options:"
+    echo "  -h,  --help              print this help."
+    exit 1
+}
+
+# Handle flags and arguments
+args=()
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    -h | --help)
+        help
+        exit 1
+        ;;
+    -* | --*)
+        shift
+        ;;
+    *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+done
+
+# Read from stdin if it's a pipe
+if [ -p /dev/stdin ]; then
+    args+=("$(cat -)")
+fi
+
+# Set positional arguments in their proper place
+set -- "${args[@]}"
+
+# Exit if no arguments are given
+if [ -z "$1" ]; then
+    echo "No arguments given."
+    echo "Try 'robots --help' for more information."
+fi
+
+# TODO: (1) Fix script discovery for development
+# Ensure fang script is installed
+# if ! command -v fang &>/dev/null; then
+#     echo "fang command could not be found!"
+#     exit 2
+# fi
+
+extract_domain() {
+    sed -E 's/https?:\/\/([^\/]+).*/\1/' <<<"$1"
+}
+
+remove_dupes() {
+    values=()
+    for value in "$@"; do
+        if [[ ! " ${values[@]} " =~ " ${value} " ]]; then
+            values+=("$value")
+        fi
+    done
+    echo "${values[@]}"
+}
+
+extract_domain() {
+    local url="$1"
+    local domain=""
+
+    # Remove protocol (http://, https://, www.)
+    url="${url#http://}"
+    url="${url#https://}"
+    # url="${url#www.}"
+
+    # Remove port number if present
+    domain="${url%%:*}"
+
+    # Extract the domain
+    domain="${domain%%/*}"
+
+    echo "${domain}"
+}
+
+main() {
+    args=("$@")
+    args=($(remove_dupes "${args[@]}"))
+
+    for arg in "${args[@]}"; do
+        # TODO: See TODO (1)
+        #arg="$(fang "${arg}")"
+        domain="$(extract_domain "${arg}")"
+        robots_url="https://${domain}/robots.txt"
+
+        echo "[!] Domain: ${domain} - Robots URL: ${robots_url}"
+        result="$(curl -sL "${robots_url}" --connect-timeout 5)"
+    
+        # Set the exit code
+        exit_code=$?
+        if [ $exit_code -ne 0 ]; then
+            echo "    Non-zero exit code: ${exit_code}"
+        else
+            # Print the robots.txt file with added leading whitespace
+            #echo "${result}" | sed 's/^/    /'
+            # If results has HTML tags, then just assume it doesn't exist
+            if grep -q "<html" <<<"${result}"; then
+                echo "    No robots.txt file found."
+            else
+                echo "${result}" | sed 's/^/    /'
+            fi
+        fi
+
+        echo ""
+    done
+
+    return 0
+}
+
+main "$@"
