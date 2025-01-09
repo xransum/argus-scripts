@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+# Print the help message
+help() {
+    echo "Usage: proxycheck [IP:PORT]..."
+    echo ""
+    echo "check if a proxy is open."
+    echo ""
+    echo "Options:"
+    echo "  -h,  --help              print this help."
+    exit 1
+}
+
+args=()
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    -h | --help)
+        help
+        exit 1
+        ;;
+    -* | --*)
+        shift
+        ;;
+    *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+done
+
+# set value if file is given
+if [ -p /dev/stdin ]; then
+    args+=("$(cat -)")
+fi
+
+# recover positional args
+set -- "${args[@]}"
+
+# Exit when no args are given
+if [ -z "$1" ]; then
+    print "No arguments given"
+    print "try 'proxycheck --help' for more information"
+    exit 1
+fi
+
+
+# Function to remove duplicates
+remove_dupes() {
+    values=()
+    for value in "$@"; do
+        if [[ ! " ${values[@]} " =~ " ${value} " ]]; then
+            values+=("$value")
+        fi
+    done
+    echo "${values[@]}"
+}
+
+# Defining the URL, user-agent and proxies, makes it modular
+user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+protocols=("http" "https" "socks5" "socks4")
+target_url="http://httpbin.org/ip"
+
+main() {
+    # Store the IPs and ports in an array
+    args=("$@")
+
+    # Remove duplicates
+    args=($(remove_dupes "${args[@]}"))
+
+    # Check if the proxy is open
+    results=()
+    for arg in "${args[@]}"; do
+        # results+=("${arg}")
+        echo "> ${arg}"
+        for protocol in "${protocols[@]}"; do
+            # TODO: Need to handle the false positives on throttle limited proxies
+            if curl -s --head -A "${user_agent}" --proxy-insecure --insecure -x "${protocol}://${arg}" "${target_url}" --connect-timeout 15 --max-time 20 | grep "200 OK" > /dev/null; then
+                #results+=("   ${protocol}: open")
+                echo "   ${protocol}: open"
+            else
+                #results+=("   ${protocol}: closed")
+                echo "   ${protocol}: closed"
+            fi
+        done
+    done
+
+    # Print the results
+    for result in "${results[@]}"; do
+        echo "$result"
+    done
+
+    return 0
+}
+
+main "$@"
