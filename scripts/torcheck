@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Full Nodes List: https://www.dan.me.uk/torlist/?full
+# Exit Nodes: https://www.dan.me.uk/torlist/?exit
+
+FULL_NODES_URL="https://www.dan.me.uk/torlist/?full"
+EXIT_NODES_URL="https://www.dan.me.uk/torlist/?exit"
+CACHE_DIR="${HOME}/.cache/argus"
+EXPIRY=1800 # default to 30 minutes
+FULL_NODES_CACHE="${CACHE_DIR}/$(md5sum <<<'full_nodes_list' | awk '{print $1}')"
+EXIT_NODES_CACHE="${CACHE_DIR}/$(md5sum <<<'exit_nodes_list' | awk '{print $1}')"
+THROTTLE_ERROR_MSG='You can only fetch the data every 30 minutes'
+
+command_exists() {
+    command -v "$@" >/dev/null 2>&1
+}
+
+# help function
+help() {
+    printf "Usage: torcheck [IP]...\n"
+    printf "%s\n" \
+        "Check if an IP address is a TOR node."
+}
+
+# Check if curl or wget is available
+if ! command_exists curl && ! command_exists wget; then
+    fmt_error "Neither curl nor wget is available. Skipping download."
+    exit 1
+fi
+
+# Handle arguments
+args="$*"
+
+# Read from stdin if it is a pipe or here-string or here-document
+# set value if file is given
+if [ -p /dev/stdin ]; then
+    args="$(cat -)"
+fi
+
+# Recover positional args
+set -- "${args}"
+
+# If value is empty, show help
+if [ -z "$1" ]; then
+    help
+    exit 1
+fi
+
+main() {
+    if [ ! -d "$CACHE_DIR" ]; then
+        mkdir -p "$CACHE_DIR"
+    fi
+
+    if [ ! -f "$FULL_NODES_CACHE" ] || [ $(expr $(date +%s) - $(date -r "$FULL_NODES_CACHE" +%s)) -gt $EXPIRY ]; then
+        # printf "Full nodes cache expired.\n"
+        if command_exists curl; then
+            curl -sSL "$FULL_NODES_URL" -o "$FULL_NODES_CACHE"
+        elif command_exists wget; then
+            wget -qO "$FULL_NODES_CACHE" "$FULL_NODES_URL"
+        fi
+    fi
+
+    if [ ! -f "$EXIT_NODES_CACHE" ] || [ $(expr $(date +%s) - $(date -r "$EXIT_NODES_CACHE" +%s)) -gt $EXPIRY ]; then
+        # printf "Exit nodes cache expired.\n"
+        if command_exists curl; then
+            curl -sSL "$EXIT_NODES_URL" -o "$EXIT_NODES_CACHE"
+        elif command_exists wget; then
+            wget -qO "$EXIT_NODES_CACHE" "$EXIT_NODES_URL"
+        fi
+    fi
+
+    FULL_NODES_DATA=$(cat "$FULL_NODES_CACHE")
+    EXIT_NODES_DATA=$(cat "$EXIT_NODES_CACHE")
+
+    if [ "${FULL_NODES_DATA}${EXIT_NODES_DATA}" == *"${THROTTLE_ERROR_MSG}"* ]; then
+        printf "\nSorry, but there was an issue with the fetched data.\n"
+        printf "Due to site throttling, you'll need to wait up to 30mins to retry.\n"
+        return 1
+    fi
+
+    a=0
+    args="$*"
+    for arg in ${args[@]}; do
+        if [ $a -gt 0 ]; then
+            printf "\n"
+        fi
+
+        printf "> %s\n" "${arg}"
+
+        # Check for Tor Node
+        printf "   Tor Node: "
+        if echo "$FULL_NODES_DATA" | grep -q "$arg"; then
+            printf "YES"
+        else
+            printf "NO"
+        fi
+        printf "\n"
+
+        # Check for Tor Exit Node
+        printf "   Exit Node: "
+        if echo "$EXIT_NODES_DATA" | grep -q "$arg"; then
+            printf "YES"
+        else
+            printf "NO"
+        fi
+        printf "\n"
+
+        a+=1
+    done
+
+    return 0
+}
+
+main "$@"
