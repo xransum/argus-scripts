@@ -10,7 +10,7 @@ This repository contains scripts that are useful for working with websites and o
 
 ## Installation
 
-With the current state of the scripts, the primary method of installation is using the [install_script.sh](install_script.sh) script.
+With the current state of the scripts, the primary method of installation is using the [install_script.sh](./scripts/install_script.sh) script.
 
 ## Usage
 
@@ -18,12 +18,12 @@ With the current state of the scripts, the primary method of installation is usi
 
 This script will download any scripts passed to it, given the URL that points to the RAW text of the script. The script sets up the users `~/bin` directory, and adds it to the PATH in the users DOTRC file for their respective shell.
 
-File source: [install_script.sh](install_scripts.sh)
+File source: [install_script.sh](./scripts/install_script.sh)
 
 Example:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/argus-scripts/argus-scripts/main/install_script.sh) [URL]...
+bash <(curl -s https://raw.githubusercontent.com/argus-scripts/argus-scripts/main/scripts/install_script.sh) [URL]...
 ```
 
 ## Contributing
