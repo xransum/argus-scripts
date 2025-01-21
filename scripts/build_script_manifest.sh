@@ -8,6 +8,7 @@ SCRIPTS_ROOT_DIR="${REPO_ROOT_DIR}/${SCRIPTS_REL_PATH}"
 MANIFEST_NAME="scripts_manifest.txt"
 MANIFEST_PATH="${REPO_ROOT_DIR}/${MANIFEST_NAME}"
 MANIFEST_HEADER="# File: ${MANIFEST_NAME}
+# Do NOT modify this file manually, it is auto-generated.
 # Generated on: $(date '+%Y-%m-%d')"
 
 if [ ! -d "$SCRIPTS_ROOT_DIR" ]; then
