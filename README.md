@@ -23,7 +23,7 @@ File source: [install_script.sh](./scripts/install_script.sh)
 Example:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/argus-scripts/argus-scripts/main/scripts/install_script.sh) [URL]...
+bash <(curl -s https://raw.githubusercontent.com/xransum/argus-scripts/refs/heads/main/scripts/install_script.sh) [URL]...
 ```
 
 ## Contributing
