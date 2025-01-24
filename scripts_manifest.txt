@@ -1,12 +1,13 @@
 # File: scripts_manifest.txt
 # Do NOT modify this file manually, it is auto-generated.
-# Generated on: 2025-01-21
-src/torcheck
-src/ipcheck
+# Generated on: 2025-01-24
 src/fang
 src/defang
-src/curls
 src/digs
-src/robotscheck
+src/curls
 src/proxycheck
+src/ipcheck
+src/cidrtoip
+src/torcheck
+src/robotscheck
 
